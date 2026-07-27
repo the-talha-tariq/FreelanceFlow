@@ -1,0 +1,68 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: FreelanceFlow.Backend/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Server=sqlserver;Database=FreelanceFlowDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - JwtSettings__Secret=${JWT_SECRET:-change-me-in-.env-this-must-be-at-least-32-chars}
+      - JwtSettings__Issuer=FreelanceFlow
+      - JwtSettings__Audience=FreelanceFlowClient
+      - JwtSettings__AccessTokenExpiryMinutes=60
+      - JwtSettings__RefreshTokenExpiryDays=7
+      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
+      - OpenAI__Model=gpt-4o
+      - SendGrid__ApiKey=${SENDGRID_API_KEY:-}
+      - SendGrid__FromEmail=${SENDGRID_FROM_EMAIL:-noreply@freelanceflow.local}
+      - Hangfire__DashboardPath=/hangfire
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - freelanceflow-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: FreelanceFlow.Frontend/Dockerfile
+    ports:
+      - "5100:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiSettings__BaseUrl=http://backend:8080
+    depends_on:
+      - backend
+    networks:
+      - freelanceflow-net
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"YourStrong@Passw0rd\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - freelanceflow-net
+
+  # Hangfire runs in-process inside the backend container and is reachable
+  # at http://localhost:5000/hangfire — no separate container needed.
+
+networks:
+  freelanceflow-net:
+    driver: bridge
+
+volumes:
+  sqlserver-data:

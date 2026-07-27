@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>FreelanceFlow.Frontend</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Layout\" />
+    <Folder Include="Models\" />
+    <Folder Include="Pages\" />
+    <Folder Include="Services\" />
+    <Folder Include="wwwroot\css\" />
+  </ItemGroup>
+
+</Project>
