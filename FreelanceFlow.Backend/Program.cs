@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using FreelanceFlow.Backend.Data;
+using FreelanceFlow.Backend.ExternalServices;
 using FreelanceFlow.Backend.Helpers;
 using FreelanceFlow.Backend.Models.Entities;
 using FreelanceFlow.Backend.Repositories;
@@ -65,6 +67,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// --- OpenAI (contract risk analysis) ---
+builder.Services.Configure<OpenAISettings>(builder.Configuration.GetSection("OpenAI"));
+
 // --- CORS (the Frontend project calls this API from a different origin) ---
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 builder.Services.AddCors(options =>
@@ -99,11 +104,18 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IContractTextExtractionService, ContractTextExtractionService>();
+builder.Services.AddScoped<IOpenAIContractAnalyzerService, OpenAIContractAnalyzerService>();
+builder.Services.AddScoped<IContractAnalysisService, ContractAnalysisService>();
 
 // --- AutoMapper ---
 builder.Services.AddAutoMapper(typeof(Program));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 // --- Swagger, with a padlock icon on each endpoint so a bearer token can be

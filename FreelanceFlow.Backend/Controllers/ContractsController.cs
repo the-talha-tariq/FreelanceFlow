@@ -10,15 +10,18 @@ namespace FreelanceFlow.Backend.Controllers;
 public class ContractsController : BaseApiController
 {
     private readonly IContractService _contractService;
+    private readonly IContractAnalysisService _contractAnalysisService;
     private readonly IValidator<CreateContractDto> _createValidator;
     private readonly IValidator<UpdateContractDto> _updateValidator;
 
     public ContractsController(
         IContractService contractService,
+        IContractAnalysisService contractAnalysisService,
         IValidator<CreateContractDto> createValidator,
         IValidator<UpdateContractDto> updateValidator)
     {
         _contractService = contractService;
+        _contractAnalysisService = contractAnalysisService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -103,6 +106,27 @@ public class ContractsController : BaseApiController
         return Ok(result.Data);
     }
 
-    // POST {id}/analyze and GET {id}/analysis are added in the AI step,
-    // rounding this controller out to 8 endpoints total.
+    [HttpPost("{id:guid}/analyze")]
+    public async Task<IActionResult> Analyze(Guid id)
+    {
+        var result = await _contractAnalysisService.AnalyzeAsync(CurrentUserId, id);
+        if (!result.Success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(result.Data);
+    }
+
+    [HttpGet("{id:guid}/analysis")]
+    public async Task<IActionResult> GetAnalysis(Guid id)
+    {
+        var result = await _contractAnalysisService.GetAnalysisAsync(CurrentUserId, id);
+        if (!result.Success)
+        {
+            return NotFound(result.Errors);
+        }
+
+        return Ok(result.Data);
+    }
 }

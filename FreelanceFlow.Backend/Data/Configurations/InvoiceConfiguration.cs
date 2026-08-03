@@ -31,12 +31,18 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .OnDelete(DeleteBehavior.Cascade);
 
         // Optional 1-to-1: MilestoneId is nullable because manually created
-        // invoices aren't tied to a milestone. SetNull so deleting a
-        // milestone doesn't take its invoice down with it.
+        // invoices aren't tied to a milestone. Restrict (not SetNull) here
+        // deliberately: SQL Server rejects multiple cascade paths to the
+        // same table, and Invoices is already reachable via
+        // Client -> Invoice (Cascade). Adding a second cascading path via
+        // Client -> Contract -> Milestone -> Invoice throws
+        // "may cause cycles or multiple cascade paths" at migration time.
+        // A milestone that has already spawned an invoice shouldn't be
+        // deleted anyway, so Restrict matches the intended behavior.
         builder.HasOne(i => i.Milestone)
             .WithOne(m => m.Invoice)
             .HasForeignKey<Invoice>(i => i.MilestoneId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(i => i.LineItems)
             .WithOne(li => li.Invoice)
