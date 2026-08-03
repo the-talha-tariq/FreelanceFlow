@@ -12,4 +12,6 @@ public interface IFileStorageService
     Task<string> SaveFileAsync(IFormFile file, string subFolder);
 
     void DeleteFile(string relativePath);
+
+    Task<string> SaveBytesAsync(byte[] content, string subFolder, string fileName);
 }

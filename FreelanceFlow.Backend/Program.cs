@@ -15,8 +15,10 @@ using FreelanceFlow.Backend.Repositories;
 using FreelanceFlow.Backend.Repositories.Interfaces;
 using FreelanceFlow.Backend.Services;
 using FreelanceFlow.Backend.Services.Interfaces;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 // NOTE: Hangfire and Serilog are still scaffolding-only and get wired in as
 // each later step builds that piece.
@@ -107,6 +109,12 @@ builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IContractTextExtractionService, ContractTextExtractionService>();
 builder.Services.AddScoped<IOpenAIContractAnalyzerService, OpenAIContractAnalyzerService>();
 builder.Services.AddScoped<IContractAnalysisService, ContractAnalysisService>();
+builder.Services.AddScoped<IMilestoneService, MilestoneService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IInvoicePdfService, InvoicePdfService>();
+builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+
+builder.Services.Configure<SendGridSettings>(builder.Configuration.GetSection("SendGrid"));
 
 // --- AutoMapper ---
 builder.Services.AddAutoMapper(typeof(Program));

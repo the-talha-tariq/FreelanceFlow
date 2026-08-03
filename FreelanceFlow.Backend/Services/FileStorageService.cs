@@ -45,4 +45,14 @@ public class FileStorageService : IFileStorageService
             File.Delete(fullPath);
         }
     }
+    public async Task<string> SaveBytesAsync(byte[] content, string subFolder, string fileName)
+    {
+        var folderPath = Path.Combine(_webRootPath, subFolder);
+        Directory.CreateDirectory(folderPath);
+
+        var fullPath = Path.Combine(folderPath, fileName);
+        await File.WriteAllBytesAsync(fullPath, content);
+
+        return $"/{subFolder.Replace('\\', '/')}/{fileName}";
+    }
 }

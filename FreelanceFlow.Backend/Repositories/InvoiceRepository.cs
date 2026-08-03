@@ -20,6 +20,7 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
 
     public async Task<Invoice?> GetWithDetailsAsync(Guid id) =>
         await DbSet
+            .Include(i => i.Freelancer)
             .Include(i => i.Client)
             .Include(i => i.LineItems)
             .Include(i => i.Payments)

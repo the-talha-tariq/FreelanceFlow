@@ -64,7 +64,6 @@
   <ItemGroup>
     <Folder Include="BackgroundJobs\" />
     <Folder Include="Data\Migrations\" />
-    <Folder Include="ExternalServices\" />
     <Folder Include="Middleware\" />
   </ItemGroup>
 
